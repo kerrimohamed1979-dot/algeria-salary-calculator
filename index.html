@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculateur de Salaire Algérie (IRG 2025/2026)</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🇩🇿 Calculateur de Salaire Algérie</h1>
+        <p>Estimez votre salaire net et vos retenues (IRG, SS).</p>
+    </header>
+
+    <div class="calculator-card">
+        <!-- Input Section -->
+        <div class="input-section">
+            <div class="form-group">
+                <label for="baseSalary">Salaire de Base / Poste (DA)</label>
+                <input type="number" id="baseSalary" placeholder="Ex: 50000" min="0">
+            </div>
+
+            <div class="form-group">
+                <label for="maritalStatus">Situation Familiale</label>
+                <select id="maritalStatus">
+                    <option value="single">Célibataire</option>
+                    <option value="married">Marié(e)</option>
+                </select>
+            </div>
+
+            <div class="form-group hidden" id="spouseGroup">
+                <label>
+                    <input type="checkbox" id="spouseWorks"> Conjoint(e) travaille ?
+                </label>
+            </div>
+
+            <div class="form-group hidden" id="childrenGroup">
+                <label for="childrenCount">Nombre d'enfants</label>
+                <input type="number" id="childrenCount" value="0" min="0">
+                <small>Estimation: 300 DA/enfant (standard)</small>
+            </div>
+
+            <button onclick="calculateSalary()">Calculer</button>
+        </div>
+
+        <!-- Result Section -->
+        <div class="result-section hidden" id="resultSection">
+            <h2>Résultats</h2>
+            
+            <div class="result-row">
+                <span>Retenue SS (9%)</span>
+                <span class="value negative">- <span id="ssValue">0</span> DA</span>
+            </div>
+
+            <div class="result-row">
+                <span>Salaire Imposable</span>
+                <span class="value" id="taxableIncome">0</span> DA
+            </div>
+
+            <div class="result-row">
+                <span>IRG (Impôt)</span>
+                <span class="value negative">- <span id="irgValue">0</span> DA</span>
+            </div>
+
+            <div class="result-row highlight-green">
+                <span>Allocations (Enfants/Conjoint)</span>
+                <span class="value positive">+ <span id="allocationsValue">0</span> DA</span>
+            </div>
+
+            <div class="total-row">
+                <span>Salaire Net à Payer</span>
+                <span class="value big" id="netSalary">0</span> DA
+            </div>
+            
+            <p class="disclaimer">*Calcul basé sur le barème IRG 2022 (toujours en vigueur). Les primes et indemnités spécifiques ne sont pas incluses.</p>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

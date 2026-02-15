@@ -1,0 +1,147 @@
+:root {
+    --primary-color: #008744; /* Algeria Green */
+    --secondary-color: #d62d20; /* Algeria Red */
+    --bg-color: #f5f5f5;
+    --card-bg: #ffffff;
+    --text-color: #333333;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    width: 100%;
+    max-width: 500px;
+    background-color: var(--card-bg);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+header h1 {
+    color: var(--primary-color);
+    margin: 0;
+    font-size: 24px;
+}
+
+header p {
+    color: #666;
+    margin-top: 5px;
+}
+
+.calculator-card {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+input[type="number"], select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+input[type="checkbox"] {
+    width: auto;
+    margin-right: 10px;
+}
+
+button {
+    width: 100%;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 10px;
+}
+
+button:hover {
+    background-color: #006633;
+}
+
+.result-section {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.result-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 16px;
+}
+
+.highlight-green {
+    background-color: #e8f5e9;
+    padding: 8px;
+    border-radius: 4px;
+    color: #006633;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 0;
+    border-top: 2px solid #ddd;
+    margin-top: 15px;
+    font-weight: bold;
+    font-size: 20px;
+    color: var(--primary-color);
+}
+
+.value {
+    font-weight: bold;
+}
+
+.value.negative { color: var(--secondary-color); }
+.value.positive { color: var(--primary-color); }
+
+.disclaimer {
+    font-size: 12px;
+    color: #999;
+    text-align: center;
+    margin-top: 15px;
+}
+
+/* Helper to hide elements */
+.hidden {
+    display: none;
+}
+
+small {
+    display: block;
+    margin-top: 3px;
+    color: #888;
+}
