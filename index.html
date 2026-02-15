@@ -2,7 +2,7 @@
 <html lang="fr" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Calculateur de Salaire Algérie Pro (2026)</title>
     
     <!-- CSS -->
@@ -13,8 +13,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- jsPDF for PDF Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- Google Fonts (Cairo for Arabic, Roboto for Latin) -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -22,19 +20,17 @@
     
     <!-- Top Bar: Settings -->
     <div class="top-bar">
-        <div class="language-selector">
-            <button onclick="changeLanguage('ar')" class="lang-btn" title="العربية">🇩🇿</button>
-            <button onclick="changeLanguage('fr')" class="lang-btn active" title="Français">🇫🇷</button>
-            <button onclick="changeLanguage('en')" class="lang-btn" title="English">🇬🇧</button>
-        </div>
-        <button id="themeToggle" class="theme-btn" title="Mode Sombre/Clair">
+        <button onclick="changeLanguage('ar')" class="icon-btn" title="العربية">🇩🇿</button>
+        <button onclick="changeLanguage('fr')" class="icon-btn active" title="Français">🇫🇷</button>
+        <button onclick="changeLanguage('en')" class="icon-btn" title="English">🇬🇧</button>
+        <button id="themeToggle" class="icon-btn" title="Mode Sombre/Clair">
             <i class="fas fa-moon"></i>
         </button>
     </div>
 
     <!-- Main Header -->
     <header>
-        <h1 data-i18n="appTitle">🇩🇿 Calculateur de Salaire Algérie</h1>
+        <h1 data-i18n="appTitle">Calculateur de Salaire Algérie</h1>
         <p data-i18n="appSubtitle">Estimez votre salaire net et vos retenues (IRG, SS).</p>
     </header>
 
@@ -87,7 +83,7 @@
                 </div>
 
                 <button onclick="calculate()" class="calculate-btn">
-                    <i class="fas fa-calculator"></i> <span data-i18n="btnCalculate">CALCULER</span>
+                    <span data-i18n="btnCalculate">CALCULER</span> <i class="fas fa-arrow-right"></i>
                 </button>
             </div>
         </div>
@@ -100,11 +96,6 @@
             <div class="main-result">
                 <span data-i18n="labelFinalSalary">Salaire Net</span>
                 <div class="amount"><span id="finalResult">0</span> <small>DA</small></div>
-            </div>
-
-            <!-- Chart Container -->
-            <div class="chart-container">
-                <canvas id="salaryChart"></canvas>
             </div>
 
             <!-- Detailed Breakdown -->
@@ -130,8 +121,12 @@
             <!-- Actions -->
             <div class="action-buttons">
                 <button onclick="generatePDF()" class="action-btn pdf-btn">
-                    <i class="fas fa-file-pdf"></i> <span data-i18n="btnDownload">Télécharger Bulletin</span>
+                    <i class="fas fa-file-pdf"></i> <span data-i18n="btnDownload">Bulletin PDF</span>
                 </button>
+            </div>
+             <!-- Chart Container (Moved to bottom of card for better flow) -->
+             <div class="chart-container" style="margin-top: 20px;">
+                <canvas id="salaryChart"></canvas>
             </div>
         </div>
     </div>
@@ -172,7 +167,7 @@
                 </div>
             </div>
 
-            <hr>
+            <hr style="border: 0; border-top: 1px solid var(--glass-border); margin: 30px 0;">
 
             <h2 data-i18n="faqTitle">❓ Questions Fréquentes (FAQ)</h2>
             <div class="faq-item">

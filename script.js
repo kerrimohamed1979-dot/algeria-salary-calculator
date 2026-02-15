@@ -16,6 +16,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Event Listeners
     document.getElementById('themeToggle').addEventListener('click', toggleTheme);
     document.getElementById('maritalStatus').addEventListener('change', updateFormVisibility);
+
+    // Enter key support
+    document.getElementById('salaryInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            calculate();
+        }
+    });
 });
 
 // --- Theme Toggle ---
@@ -44,8 +51,18 @@ function changeLanguage(lang) {
     });
 
     // Update Buttons Active State
-    document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelector(`.lang-btn[onclick="changeLanguage('${lang}')"]`).classList.add('active');
+    document.querySelectorAll('.icon-btn').forEach(btn => btn.classList.remove('active'));
+    // Note: Since we have multiple icon buttons, we should target the lang ones specifically or just rely on the onclick binding check (simplified here)
+    // Actually, let's just re-render active states if needed, but the current HTML uses specific onclicks.
+    // Let's just manually set the active class for the lang buttons:
+    const langButtons = document.querySelectorAll('.icon-btn[onclick^="changeLanguage"]');
+    langButtons.forEach(btn => {
+        if(btn.getAttribute('onclick').includes(lang)) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
 }
 
 // --- Mode Switcher ---
@@ -55,10 +72,6 @@ function setMode(mode) {
     document.getElementById(mode === 'normal' ? 'modeNormal' : 'modeReverse').classList.add('active');
 
     // Update placeholder/label based on mode
-    const labelKey = mode === 'normal' ? 'labelBaseSalary' : 'labelFinalSalary'; 
-    // Wait, if reverse mode, input is "Target Net", if normal, input is "Base Gross"
-    // But for UI simplicity, let's keep the label generic or update it dynamically.
-    // Actually, let's just update the label text to be clear.
     const inputLabel = document.getElementById('salaryLabel');
     if (mode === 'normal') {
         inputLabel.innerText = translations[currentLang]['labelBaseSalary'];
@@ -88,7 +101,7 @@ function calculate() {
     const inputSalary = parseFloat(document.getElementById('salaryInput').value);
     
     if (isNaN(inputSalary) || inputSalary < 0) {
-        alert("Veuillez entrer un montant valide.");
+        // Use a nicer alert or just return
         return;
     }
 
@@ -175,10 +188,10 @@ function calculateGrossFromNet(targetNet) {
     let calculatedNet = 0;
     let iterations = 0;
 
-    // Expand high if needed (unlikely for reasonable salaries)
+    // Expand high if needed
     while (calculateNetFromGross(high).net < targetNet) {
         high *= 2;
-        if (high > 100000000) break; // Safety break
+        if (high > 100000000) break; 
     }
 
     // Binary Search
@@ -188,7 +201,7 @@ function calculateGrossFromNet(targetNet) {
         calculatedNet = res.net;
 
         if (Math.abs(calculatedNet - targetNet) < 1) {
-            return res; // Found it!
+            return res; 
         }
 
         if (calculatedNet < targetNet) {
@@ -199,22 +212,48 @@ function calculateGrossFromNet(targetNet) {
         iterations++;
     }
 
-    return calculateNetFromGross(mid); // Return best approximation
+    return calculateNetFromGross(mid); 
 }
 
 // --- DISPLAY & CHART ---
 function displayResults(data) {
-    document.getElementById('resultCard').classList.remove('hidden');
+    const resultCard = document.getElementById('resultCard');
+    resultCard.classList.remove('hidden');
+    
+    // Scroll to results on mobile
+    if(window.innerWidth < 768) {
+        resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 
-    // Text Updates
-    document.getElementById('finalResult').innerText = data.net.toFixed(2);
-    document.getElementById('resGross').innerText = data.gross.toFixed(2);
-    document.getElementById('resSS').innerText = data.ss.toFixed(2);
-    document.getElementById('resIRG').innerText = data.irg.toFixed(2);
-    document.getElementById('resAlloc').innerText = data.allocations.toFixed(2);
+    // Animate Numbers
+    animateValue("finalResult", 0, data.net, 1000);
+    
+    document.getElementById('resGross').innerText = formatCurrency(data.gross);
+    document.getElementById('resSS').innerText = formatCurrency(data.ss);
+    document.getElementById('resIRG').innerText = formatCurrency(data.irg);
+    document.getElementById('resAlloc').innerText = formatCurrency(data.allocations);
 
     // Chart Update
     updateChart(data);
+}
+
+function formatCurrency(num) {
+    return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+
+function animateValue(id, start, end, duration) {
+    const obj = document.getElementById(id);
+    let startTimestamp = null;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const value = Math.floor(progress * (end - start) + start);
+        obj.innerHTML = value.toLocaleString('fr-FR'); // Format with spaces
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        }
+    };
+    window.requestAnimationFrame(step);
 }
 
 function updateChart(data) {
@@ -224,23 +263,53 @@ function updateChart(data) {
         myChart.destroy();
     }
 
+    // Determine colors based on theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#e0e0e0' : '#333333';
+
     myChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: ['Net (Poche)', 'Sécurité Sociale', 'Impôt (IRG)'],
+            labels: [
+                translations[currentLang].labelFinalSalary, 
+                translations[currentLang].labelSS, 
+                translations[currentLang].labelIRG
+            ],
             datasets: [{
                 data: [data.net, data.ss, data.irg],
-                backgroundColor: ['#008744', '#d62d20', '#ffa700'],
-                borderWidth: 0
+                backgroundColor: ['#00c853', '#ff3d00', '#2979ff'],
+                borderWidth: 0,
+                hoverOffset: 10
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            cutout: '70%',
             plugins: {
                 legend: {
-                    position: 'bottom'
+                    position: 'bottom',
+                    labels: {
+                        color: textColor,
+                        font: {
+                            family: 'Inter',
+                            size: 14
+                        },
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    backgroundColor: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.8)',
+                    titleColor: isDark ? '#000' : '#fff',
+                    bodyColor: isDark ? '#000' : '#fff',
+                    padding: 12,
+                    cornerRadius: 8,
+                    displayColors: true
                 }
+            },
+            animation: {
+                animateScale: true,
+                animateRotate: true
             }
         }
     });
