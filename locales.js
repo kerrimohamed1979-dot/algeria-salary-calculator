@@ -1,0 +1,113 @@
+const translations = {
+    fr: {
+        appTitle: "🇩🇿 Calculateur de Salaire Algérie",
+        appSubtitle: "Estimez votre salaire net et vos retenues (IRG, SS).",
+        modeNormal: "Brut vers Net",
+        modeReverse: "Net vers Brut",
+        labelBaseSalary: "Salaire de Base (DA)",
+        labelStatus: "Situation Familiale",
+        statusSingle: "Célibataire",
+        statusMarried: "Marié(e)",
+        labelSpouseWorks: "Conjoint(e) travaille ?",
+        labelChildren: "Nombre d'enfants",
+        btnCalculate: "CALCULER",
+        resultTitle: "Résultats",
+        labelFinalSalary: "Salaire Net",
+        labelGross: "Salaire Brut",
+        labelSS: "Sécurité Sociale (9%)",
+        labelIRG: "IRG (Impôt)",
+        labelAlloc: "Allocations",
+        btnDownload: "Télécharger Bulletin",
+        
+        // Info Section
+        infoTitle: "📜 Comprendre votre fiche de paie en Algérie",
+        infoIntro: "Le système de paie algérien est régi par plusieurs cotisations et impôts. Voici comment votre salaire net est calculé à partir du brut :",
+        infoSS_Title: "1. La Sécurité Sociale (CNAS)",
+        infoSS_Text: "Tout salarié en Algérie cotise à la sécurité sociale. Le taux est unique : 9% du salaire de poste. Cette cotisation couvre l'assurance maladie, la maternité, et la retraite.",
+        infoIRG_Title: "2. L'IRG (Impôt sur le Revenu)",
+        infoIRG_Text: "L'IRG est un impôt progressif. Plus vous gagnez, plus le taux augmente (de 0% à 35%). Depuis 2022, les salaires inférieurs à 30 000 DA sont totalement exonérés !",
+        infoAlloc_Title: "3. Les Allocations Familiales",
+        infoAlloc_Text: "L'état verse des aides pour les familles. En moyenne : 300 DA par enfant et 800 DA pour le conjoint sans emploi (Salaire Unique).",
+        
+        // FAQ
+        faqTitle: "❓ Questions Fréquentes (FAQ)",
+        faq1_Q: "Mon salaire est de 28 000 DA. Dois-je payer l'IRG ?",
+        faq1_A: "Non ! Depuis la loi de finances 2022, tous les salaires imposables inférieurs à 30 000 DA sont exonérés à 100% de l'IRG.",
+        faq2_Q: "Quelle est la différence entre le Brut et le Net ?",
+        faq2_A: "Le Brut est le salaire contractuel avant prélèvements. Le Net est ce qui arrive réellement sur votre compte bancaire après déduction de la CNAS (9%) et de l'IRG."
+    },
+    en: {
+        appTitle: "🇩🇿 Algeria Salary Calculator",
+        appSubtitle: "Estimate your net salary and taxes (IRG, SS).",
+        modeNormal: "Gross to Net",
+        modeReverse: "Net to Gross",
+        labelBaseSalary: "Base Salary (DZD)",
+        labelStatus: "Marital Status",
+        statusSingle: "Single",
+        statusMarried: "Married",
+        labelSpouseWorks: "Spouse works?",
+        labelChildren: "Number of children",
+        btnCalculate: "CALCULATE",
+        resultTitle: "Results",
+        labelFinalSalary: "Net Salary",
+        labelGross: "Gross Salary",
+        labelSS: "Social Security (9%)",
+        labelIRG: "IRG (Tax)",
+        labelAlloc: "Allocations",
+        btnDownload: "Download Payslip",
+
+        // Info Section
+        infoTitle: "📜 Understanding your Algerian Payslip",
+        infoIntro: "The Algerian payroll system involves several contributions and taxes. Here is how your net salary is calculated from the gross amount:",
+        infoSS_Title: "1. Social Security (CNAS)",
+        infoSS_Text: "Every employee in Algeria contributes to social security. The rate is a flat 9% of the base salary. This covers health insurance, maternity, and retirement.",
+        infoIRG_Title: "2. IRG (Income Tax)",
+        infoIRG_Text: "IRG is a progressive tax. The more you earn, the higher the rate (0% to 35%). Since 2022, salaries below 30,000 DZD are 100% tax-free!",
+        infoAlloc_Title: "3. Family Allowances",
+        infoAlloc_Text: "The state provides aid for families. On average: 300 DZD per child and 800 DZD for a non-working spouse (Sole Salary Allowance).",
+        
+        // FAQ
+        faqTitle: "❓ Frequently Asked Questions (FAQ)",
+        faq1_Q: "My salary is 28,000 DZD. Do I have to pay tax?",
+        faq1_A: "No! Since the 2022 finance law, all taxable salaries below 30,000 DZD are 100% exempt from IRG tax.",
+        faq2_Q: "What is the difference between Gross and Net?",
+        faq2_A: "Gross is the contractual salary before deductions. Net is what actually lands in your bank account after deducting CNAS (9%) and IRG."
+    },
+    ar: {
+        appTitle: "🇩🇿 حاسبة الرواتب الجزائرية",
+        appSubtitle: "تقدير الراتب الصافي والضرائب (IRG, SS).",
+        modeNormal: "من الخام إلى الصافي",
+        modeReverse: "من الصافي إلى الخام",
+        labelBaseSalary: "الراتب الأساسي (دج)",
+        labelStatus: "الحالة العائلية",
+        statusSingle: "أعزب",
+        statusMarried: "متزوج",
+        labelSpouseWorks: "الزوج(ة) يعمل؟",
+        labelChildren: "عدد الأطفال",
+        btnCalculate: "احسب",
+        resultTitle: "النتائج",
+        labelFinalSalary: "الراتب الصافي",
+        labelGross: "الراتب الخام",
+        labelSS: "الضمان الاجتماعي (9%)",
+        labelIRG: "الضريبة على الدخل (IRG)",
+        labelAlloc: "المنح العائلية",
+        btnDownload: "تحميل كشف الراتب",
+
+        // Info Section
+        infoTitle: "📜 فهم كشف الراتب الجزائري",
+        infoIntro: "يخضع نظام الأجور في الجزائر لعدة اشتراكات وضرائب. إليك كيفية حساب راتبك الصافي انطلاقا من الخام:",
+        infoSS_Title: "1. الضمان الاجتماعي (CNAS)",
+        infoSS_Text: "يساهم كل موظف في الجزائر في الضمان الاجتماعي. النسبة ثابتة وهي 9% من الراتب الأساسي. تغطي هذه المساهمة التأمين الصحي، الأمومة، والتقاعد.",
+        infoIRG_Title: "2. الضريبة على الدخل (IRG)",
+        infoIRG_Text: "ضريبة IRG تصاعدية. كلما زاد راتبك، زادت النسبة (من 0% إلى 35%). منذ 2022، الرواتب الأقل من 30,000 دج معفاة تماماً!",
+        infoAlloc_Title: "3. المنح العائلية",
+        infoAlloc_Text: "تقدم الدولة مساعدات للأسر. في المتوسط: 300 دج لكل طفل و 800 دج للزوجة الماكثة بالبيت (منحة الأجر الوحيد).",
+        
+        // FAQ
+        faqTitle: "❓ الأسئلة الشائعة (FAQ)",
+        faq1_Q: "راتبي 28,000 دج. هل يجب علي دفع الضريبة؟",
+        faq1_A: "لا! منذ قانون المالية 2022، جميع الرواتب الخاضعة للضريبة الأقل من 30,000 دج معفاة بنسبة 100% من IRG.",
+        faq2_Q: "ما الفرق بين الراتب الخام والصافي؟",
+        faq2_A: "الراتب الخام هو الراتب التعاقدي قبل الخصومات. الراتب الصافي هو ما يصل فعليًا إلى حسابك البنكي بعد خصم CNAS (9%) و IRG."
+    }
+};

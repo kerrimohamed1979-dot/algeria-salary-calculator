@@ -1,84 +1,193 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculateur de Salaire Algérie (IRG 2025/2026)</title>
+    <title>Calculateur de Salaire Algérie Pro (2026)</title>
+    
+    <!-- CSS -->
     <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for Graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- jsPDF for PDF Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Google Fonts (Cairo for Arabic, Roboto for Latin) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<div class="container">
+<div class="app-container">
+    
+    <!-- Top Bar: Settings -->
+    <div class="top-bar">
+        <div class="language-selector">
+            <button onclick="changeLanguage('ar')" class="lang-btn" title="العربية">🇩🇿</button>
+            <button onclick="changeLanguage('fr')" class="lang-btn active" title="Français">🇫🇷</button>
+            <button onclick="changeLanguage('en')" class="lang-btn" title="English">🇬🇧</button>
+        </div>
+        <button id="themeToggle" class="theme-btn" title="Mode Sombre/Clair">
+            <i class="fas fa-moon"></i>
+        </button>
+    </div>
+
+    <!-- Main Header -->
     <header>
-        <h1>🇩🇿 Calculateur de Salaire Algérie</h1>
-        <p>Estimez votre salaire net et vos retenues (IRG, SS).</p>
+        <h1 data-i18n="appTitle">🇩🇿 Calculateur de Salaire Algérie</h1>
+        <p data-i18n="appSubtitle">Estimez votre salaire net et vos retenues (IRG, SS).</p>
     </header>
 
-    <div class="calculator-card">
-        <!-- Input Section -->
-        <div class="input-section">
-            <div class="form-group">
-                <label for="baseSalary">Salaire de Base / Poste (DA)</label>
-                <input type="number" id="baseSalary" placeholder="Ex: 50000" min="0">
+    <!-- Main Content Grid -->
+    <div class="main-grid">
+        
+        <!-- Left Column: Inputs -->
+        <div class="card input-card">
+            
+            <!-- Mode Switcher (Net <-> Gross) -->
+            <div class="mode-switch">
+                <button class="mode-btn active" id="modeNormal" onclick="setMode('normal')" data-i18n="modeNormal">Brut vers Net</button>
+                <button class="mode-btn" id="modeReverse" onclick="setMode('reverse')" data-i18n="modeReverse">Net vers Brut</button>
             </div>
 
-            <div class="form-group">
-                <label for="maritalStatus">Situation Familiale</label>
-                <select id="maritalStatus">
-                    <option value="single">Célibataire</option>
-                    <option value="married">Marié(e)</option>
-                </select>
-            </div>
+            <div class="input-section">
+                <div class="form-group">
+                    <label for="salaryInput" id="salaryLabel" data-i18n="labelBaseSalary">Salaire de Base (DA)</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <input type="number" id="salaryInput" placeholder="50000" min="0">
+                    </div>
+                </div>
 
-            <div class="form-group hidden" id="spouseGroup">
-                <label>
-                    <input type="checkbox" id="spouseWorks"> Conjoint(e) travaille ?
-                </label>
-            </div>
+                <div class="form-group">
+                    <label for="maritalStatus" data-i18n="labelStatus">Situation Familiale</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user-friends"></i>
+                        <select id="maritalStatus">
+                            <option value="single" data-i18n="statusSingle">Célibataire</option>
+                            <option value="married" data-i18n="statusMarried">Marié(e)</option>
+                        </select>
+                    </div>
+                </div>
 
-            <div class="form-group hidden" id="childrenGroup">
-                <label for="childrenCount">Nombre d'enfants</label>
-                <input type="number" id="childrenCount" value="0" min="0">
-                <small>Estimation: 300 DA/enfant (standard)</small>
-            </div>
+                <div class="form-group hidden" id="spouseGroup">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="spouseWorks">
+                        <span class="checkmark"></span>
+                        <span data-i18n="labelSpouseWorks">Conjoint(e) travaille ?</span>
+                    </label>
+                </div>
 
-            <button onclick="calculateSalary()">Calculer</button>
+                <div class="form-group hidden" id="childrenGroup">
+                    <label for="childrenCount" data-i18n="labelChildren">Nombre d'enfants</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-baby"></i>
+                        <input type="number" id="childrenCount" value="0" min="0">
+                    </div>
+                </div>
+
+                <button onclick="calculate()" class="calculate-btn">
+                    <i class="fas fa-calculator"></i> <span data-i18n="btnCalculate">CALCULER</span>
+                </button>
+            </div>
         </div>
 
-        <!-- Result Section -->
-        <div class="result-section hidden" id="resultSection">
-            <h2>Résultats</h2>
+        <!-- Right Column: Results & Visuals -->
+        <div class="card result-card hidden" id="resultCard">
+            <h2 data-i18n="resultTitle">Résultats</h2>
             
-            <div class="result-row">
-                <span>Retenue SS (9%)</span>
-                <span class="value negative">- <span id="ssValue">0</span> DA</span>
+            <!-- The Big Number -->
+            <div class="main-result">
+                <span data-i18n="labelFinalSalary">Salaire Net</span>
+                <div class="amount"><span id="finalResult">0</span> <small>DA</small></div>
             </div>
 
-            <div class="result-row">
-                <span>Salaire Imposable</span>
-                <span class="value" id="taxableIncome">0</span> DA
+            <!-- Chart Container -->
+            <div class="chart-container">
+                <canvas id="salaryChart"></canvas>
             </div>
 
-            <div class="result-row">
-                <span>IRG (Impôt)</span>
-                <span class="value negative">- <span id="irgValue">0</span> DA</span>
+            <!-- Detailed Breakdown -->
+            <div class="details-list">
+                <div class="detail-item">
+                    <span data-i18n="labelGross">Salaire Brut</span>
+                    <span id="resGross">0</span>
+                </div>
+                <div class="detail-item negative">
+                    <span data-i18n="labelSS">Sécurité Sociale (9%)</span>
+                    <span>- <span id="resSS">0</span></span>
+                </div>
+                <div class="detail-item negative">
+                    <span data-i18n="labelIRG">IRG (Impôt)</span>
+                    <span>- <span id="resIRG">0</span></span>
+                </div>
+                <div class="detail-item positive">
+                    <span data-i18n="labelAlloc">Allocations</span>
+                    <span>+ <span id="resAlloc">0</span></span>
+                </div>
             </div>
 
-            <div class="result-row highlight-green">
-                <span>Allocations (Enfants/Conjoint)</span>
-                <span class="value positive">+ <span id="allocationsValue">0</span> DA</span>
+            <!-- Actions -->
+            <div class="action-buttons">
+                <button onclick="generatePDF()" class="action-btn pdf-btn">
+                    <i class="fas fa-file-pdf"></i> <span data-i18n="btnDownload">Télécharger Bulletin</span>
+                </button>
             </div>
+        </div>
+    </div>
 
-            <div class="total-row">
-                <span>Salaire Net à Payer</span>
-                <span class="value big" id="netSalary">0</span> DA
-            </div>
+    <!-- SEO & FAQ Section -->
+    <div class="content-section">
+        <div class="card info-card">
+            <h2 data-i18n="infoTitle">📜 Comprendre votre fiche de paie en Algérie</h2>
+            <p data-i18n="infoIntro">
+                Le système de paie algérien est régi par plusieurs cotisations et impôts. 
+                Voici comment votre salaire net est calculé à partir du brut :
+            </p>
             
-            <p class="disclaimer">*Calcul basé sur le barème IRG 2022 (toujours en vigueur). Les primes et indemnités spécifiques ne sont pas incluses.</p>
+            <div class="info-grid">
+                <div class="info-item">
+                    <h3 data-i18n="infoSS_Title">1. La Sécurité Sociale (CNAS)</h3>
+                    <p data-i18n="infoSS_Text">
+                        Tout salarié en Algérie cotise à la sécurité sociale. 
+                        Le taux est unique : <strong>9%</strong> du salaire de poste. 
+                        Cette cotisation couvre l'assurance maladie, la maternité, et la retraite.
+                    </p>
+                </div>
+                
+                <div class="info-item">
+                    <h3 data-i18n="infoIRG_Title">2. L'IRG (Impôt sur le Revenu)</h3>
+                    <p data-i18n="infoIRG_Text">
+                        L'IRG est un impôt progressif. Plus vous gagnez, plus le taux augmente (de 0% à 35%).
+                        Depuis 2022, les salaires inférieurs à <strong>30 000 DA</strong> sont totalement exonérés !
+                    </p>
+                </div>
+
+                <div class="info-item">
+                    <h3 data-i18n="infoAlloc_Title">3. Les Allocations Familiales</h3>
+                    <p data-i18n="infoAlloc_Text">
+                        L'état verse des aides pour les familles. En moyenne : 
+                        <strong>300 DA</strong> par enfant et <strong>800 DA</strong> pour le conjoint sans emploi (Salaire Unique).
+                    </p>
+                </div>
+            </div>
+
+            <hr>
+
+            <h2 data-i18n="faqTitle">❓ Questions Fréquentes (FAQ)</h2>
+            <div class="faq-item">
+                <h4 data-i18n="faq1_Q">Mon salaire est de 28 000 DA. Dois-je payer l'IRG ?</h4>
+                <p data-i18n="faq1_A">Non ! Depuis la loi de finances 2022, tous les salaires imposables inférieurs à 30 000 DA sont exonérés à 100% de l'IRG.</p>
+            </div>
+            <div class="faq-item">
+                <h4 data-i18n="faq2_Q">Quelle est la différence entre le Brut et le Net ?</h4>
+                <p data-i18n="faq2_A">Le <strong>Brut</strong> est le salaire contractuel avant prélèvements. Le <strong>Net</strong> est ce qui arrive réellement sur votre compte bancaire après déduction de la CNAS (9%) et de l'IRG.</p>
+            </div>
         </div>
     </div>
 </div>
 
+<script src="locales.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

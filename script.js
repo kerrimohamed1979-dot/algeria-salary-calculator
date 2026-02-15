@@ -1,5 +1,75 @@
-document.getElementById('maritalStatus').addEventListener('change', function() {
-    const status = this.value;
+// --- Global State ---
+let currentLang = 'fr';
+let currentMode = 'normal'; // 'normal' (Gross->Net) or 'reverse' (Net->Gross)
+let myChart = null;
+
+// --- Initialization ---
+document.addEventListener('DOMContentLoaded', () => {
+    // Check saved theme
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    
+    // Check saved language
+    const savedLang = localStorage.getItem('lang') || 'fr';
+    changeLanguage(savedLang);
+
+    // Event Listeners
+    document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+    document.getElementById('maritalStatus').addEventListener('change', updateFormVisibility);
+});
+
+// --- Theme Toggle ---
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+}
+
+// --- Language Switcher ---
+function changeLanguage(lang) {
+    currentLang = lang;
+    localStorage.setItem('lang', lang);
+    
+    // Update RTL/LTR
+    document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+    document.documentElement.setAttribute('lang', lang);
+
+    // Update Text Content
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (translations[lang][key]) {
+            element.innerText = translations[lang][key];
+        }
+    });
+
+    // Update Buttons Active State
+    document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelector(`.lang-btn[onclick="changeLanguage('${lang}')"]`).classList.add('active');
+}
+
+// --- Mode Switcher ---
+function setMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(mode === 'normal' ? 'modeNormal' : 'modeReverse').classList.add('active');
+
+    // Update placeholder/label based on mode
+    const labelKey = mode === 'normal' ? 'labelBaseSalary' : 'labelFinalSalary'; 
+    // Wait, if reverse mode, input is "Target Net", if normal, input is "Base Gross"
+    // But for UI simplicity, let's keep the label generic or update it dynamically.
+    // Actually, let's just update the label text to be clear.
+    const inputLabel = document.getElementById('salaryLabel');
+    if (mode === 'normal') {
+        inputLabel.innerText = translations[currentLang]['labelBaseSalary'];
+    } else {
+        inputLabel.innerText = translations[currentLang]['labelFinalSalary'] + " (Cible)";
+    }
+}
+
+// --- Form Visibility ---
+function updateFormVisibility() {
+    const status = document.getElementById('maritalStatus').value;
     const spouseGroup = document.getElementById('spouseGroup');
     const childrenGroup = document.getElementById('childrenGroup');
 
@@ -9,119 +79,205 @@ document.getElementById('maritalStatus').addEventListener('change', function() {
     } else {
         spouseGroup.classList.add('hidden');
         childrenGroup.classList.add('hidden');
-        // Reset values if hidden
-        document.getElementById('spouseWorks').checked = false;
-        document.getElementById('childrenCount').value = 0;
     }
-});
+}
 
-function calculateSalary() {
-    // 1. Get Inputs
-    const grossSalary = parseFloat(document.getElementById('baseSalary').value);
+// --- CORE CALCULATION LOGIC ---
+
+function calculate() {
+    const inputSalary = parseFloat(document.getElementById('salaryInput').value);
+    
+    if (isNaN(inputSalary) || inputSalary < 0) {
+        alert("Veuillez entrer un montant valide.");
+        return;
+    }
+
+    let result;
+
+    if (currentMode === 'normal') {
+        result = calculateNetFromGross(inputSalary);
+    } else {
+        result = calculateGrossFromNet(inputSalary);
+    }
+
+    displayResults(result);
+}
+
+function calculateNetFromGross(gross) {
     const maritalStatus = document.getElementById('maritalStatus').value;
     const spouseWorks = document.getElementById('spouseWorks').checked;
     const childrenCount = parseInt(document.getElementById('childrenCount').value) || 0;
 
-    if (isNaN(grossSalary) || grossSalary < 0) {
-        alert("Veuillez entrer un salaire valide.");
-        return;
-    }
+    // 1. SS (9%)
+    const ss = gross * 0.09;
 
-    // 2. Calculate Social Security (CNAS) - 9%
-    const cnas = grossSalary * 0.09;
-    
-    // 3. Calculate Taxable Income (Salaire Imposable)
-    const taxableIncome = grossSalary - cnas;
+    // 2. Taxable Income
+    const taxableIncome = gross - ss;
 
-    // 4. Calculate IRG (Impôt sur le Revenu Global)
-    let irg = calculateIRG(taxableIncome);
+    // 3. IRG
+    const irg = calculateIRG(taxableIncome);
 
-    // 5. Calculate Allocations (Family & Spouse)
-    // Note: This is an estimation. Real value depends on specific social security rules.
-    // Standard estimation: 300 DA per child.
-    // Salaire Unique (Non-working spouse): ~800 DA.
+    // 4. Allocations
     let allocations = 0;
-    
     if (maritalStatus === 'married') {
-        if (!spouseWorks) {
-            allocations += 800; // Allocation Salaire Unique (ASU)
-        }
-        if (childrenCount > 0) {
-            allocations += (childrenCount * 300); // Allocation Familiale standard
-        }
+        if (!spouseWorks) allocations += 800; // Salary Unique
+        if (childrenCount > 0) allocations += (childrenCount * 300);
     }
 
-    // 6. Calculate Net Salary
-    const netSalary = taxableIncome - irg + allocations;
+    // 5. Net
+    const net = taxableIncome - irg + allocations;
 
-    // 7. Display Results
-    document.getElementById('ssValue').innerText = cnas.toFixed(2);
-    document.getElementById('taxableIncome').innerText = taxableIncome.toFixed(2);
-    document.getElementById('irgValue').innerText = irg.toFixed(2);
-    document.getElementById('allocationsValue').innerText = allocations.toFixed(2);
-    document.getElementById('netSalary').innerText = netSalary.toFixed(2);
-
-    // Show result section
-    document.getElementById('resultSection').classList.remove('hidden');
+    return {
+        gross: gross,
+        ss: ss,
+        irg: irg,
+        allocations: allocations,
+        net: net
+    };
 }
 
-/**
- * Calculates IRG based on the 2022/2025 Scale
- * @param {number} income - Taxable Monthly Income
- * @returns {number} - The calculated tax
- */
 function calculateIRG(income) {
-    // Rule 1: Income <= 30,000 DA is Tax Free
-    if (income <= 30000) {
-        return 0;
-    }
+    if (income <= 30000) return 0;
 
-    // Rule 2: Calculate Raw IRG (IRG Brut) based on progressive scale
-    // Scale:
-    // 0 - 10,000: 0%
-    // 10,001 - 30,000: 20%
-    // 30,001 - 120,000: 30%
-    // > 120,000: 35%
-    
     let rawIRG = 0;
-
-    // Tranche 1: 0 - 10,000 (0%)
     
-    // Tranche 2: 10,001 - 30,000 (20%)
-    // Full tranche is 20,000. 20% of 20,000 is 4,000.
-    if (income > 30000) {
-        rawIRG += 4000; // We know it's > 30k, so we take the full 4k from the 10-30k bracket
-    } 
+    // Scale 2022
+    if (income > 30000) rawIRG += 4000; // Full 20% tranche (10k-30k)
     
-    // Tranche 3: 30,001 - 120,000 (30%)
     if (income <= 120000) {
         rawIRG += (income - 30000) * 0.30;
     } else {
-        // Full tranche is 90,000. 30% of 90,000 is 27,000.
-        rawIRG += 27000;
-        
-        // Tranche 4: > 120,000 (35%)
+        rawIRG += 27000; // Full 30% tranche (30k-120k)
         rawIRG += (income - 120000) * 0.35;
     }
 
-    // Rule 3: 1st Abatement (40%)
-    // Min 1000, Max 1500
-    let abatement1 = rawIRG * 0.40;
-    if (abatement1 < 1000) abatement1 = 1000;
-    if (abatement1 > 1500) abatement1 = 1500;
+    // 1st Abatement (40%, min 1000, max 1500)
+    let ab1 = rawIRG * 0.40;
+    if (ab1 < 1000) ab1 = 1000;
+    if (ab1 > 1500) ab1 = 1500;
+    
+    let irg = rawIRG - ab1;
+    if (irg < 0) irg = 0;
 
-    // Apply 1st abatement
-    let irgAfterAbatement1 = rawIRG - abatement1;
-    if (irgAfterAbatement1 < 0) irgAfterAbatement1 = 0; // Should not happen given the logic but safe check
-
-    // Rule 4: 2nd Abatement (For incomes between 30,001 and 35,000)
-    let finalIRG = irgAfterAbatement1;
-
+    // 2nd Abatement (Conditional)
     if (income > 30000 && income <= 35000) {
-        // Formula: IRG = (IRG1 * (137/51)) - (27925/8)
-        finalIRG = (irgAfterAbatement1 * (137/51)) - (27925/8);
+        irg = (irg * (137/51)) - (27925/8);
     }
 
-    // Ensure no negative tax
-    return Math.max(0, finalIRG);
+    return Math.max(0, irg);
+}
+
+// --- REVERSE CALCULATION (Binary Search) ---
+function calculateGrossFromNet(targetNet) {
+    let low = targetNet;
+    let high = targetNet * 2; // Initial guess upper bound
+    let mid = 0;
+    let calculatedNet = 0;
+    let iterations = 0;
+
+    // Expand high if needed (unlikely for reasonable salaries)
+    while (calculateNetFromGross(high).net < targetNet) {
+        high *= 2;
+        if (high > 100000000) break; // Safety break
+    }
+
+    // Binary Search
+    while (low <= high && iterations < 50) {
+        mid = (low + high) / 2;
+        const res = calculateNetFromGross(mid);
+        calculatedNet = res.net;
+
+        if (Math.abs(calculatedNet - targetNet) < 1) {
+            return res; // Found it!
+        }
+
+        if (calculatedNet < targetNet) {
+            low = mid + 1;
+        } else {
+            high = mid - 1;
+        }
+        iterations++;
+    }
+
+    return calculateNetFromGross(mid); // Return best approximation
+}
+
+// --- DISPLAY & CHART ---
+function displayResults(data) {
+    document.getElementById('resultCard').classList.remove('hidden');
+
+    // Text Updates
+    document.getElementById('finalResult').innerText = data.net.toFixed(2);
+    document.getElementById('resGross').innerText = data.gross.toFixed(2);
+    document.getElementById('resSS').innerText = data.ss.toFixed(2);
+    document.getElementById('resIRG').innerText = data.irg.toFixed(2);
+    document.getElementById('resAlloc').innerText = data.allocations.toFixed(2);
+
+    // Chart Update
+    updateChart(data);
+}
+
+function updateChart(data) {
+    const ctx = document.getElementById('salaryChart').getContext('2d');
+    
+    if (myChart) {
+        myChart.destroy();
+    }
+
+    myChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Net (Poche)', 'Sécurité Sociale', 'Impôt (IRG)'],
+            datasets: [{
+                data: [data.net, data.ss, data.irg],
+                backgroundColor: ['#008744', '#d62d20', '#ffa700'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+// --- PDF GENERATION ---
+function generatePDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Simple Payslip Layout
+    doc.setFontSize(22);
+    doc.setTextColor(0, 135, 68);
+    doc.text("Bulletin de Paie (Simulation)", 20, 20);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Date: " + new Date().toLocaleDateString(), 20, 30);
+    
+    // Draw Line
+    doc.setLineWidth(0.5);
+    doc.line(20, 35, 190, 35);
+    
+    // Data
+    const gross = document.getElementById('resGross').innerText;
+    const ss = document.getElementById('resSS').innerText;
+    const irg = document.getElementById('resIRG').innerText;
+    const net = document.getElementById('finalResult').innerText;
+
+    let y = 50;
+    doc.text(`Salaire Brut Imposable: ${gross} DA`, 20, y); y += 10;
+    doc.text(`Retenue SS (9%): -${ss} DA`, 20, y); y += 10;
+    doc.text(`Retenue IRG: -${irg} DA`, 20, y); y += 15;
+    
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text(`NET A PAYER: ${net} DA`, 20, y);
+
+    doc.save("bulletin-paie-algerie.pdf");
 }
